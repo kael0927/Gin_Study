@@ -1,19 +1,25 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"os"
-)
+	"github.com/gin-gonic/gin"
 
-func sayHello(w http.ResponseWriter, r *http.Request) {
-	b, _ := os.ReadFile("./hello.txt")
-	_, _ = fmt.Fprintln(w, string(b))
-}
-func main() {
-	http.HandleFunc("/hello", sayHello)
-	err := http.ListenAndServe(":9090", nil)
-	if err != nil {
-		fmt.Printf("http serve failed err:%v\n", err)
-	}
-}
+)
+ func main() {
+	r := gin.Default()
+	r.GET("/book",func(c *gin.Context) {
+		c.JSON(200,gin.H{
+			"message":"GET",
+		})
+	})
+	r.POST("/book",func(c *gin.Context){
+		c.JSON(200,gin.H{
+			"message":"POST",
+		})
+	})
+	r.PUT("/book",func(c *gin.Context){
+		c.JSON(200,gin.H{
+			"message":"PUT",
+		})
+	})
+	r.Run()
+ }
