@@ -8,7 +8,6 @@ import(
 type User struct {
 	Name string
 	Age int
-	Gender string
 }
 
 func SayHello(w http.ResponseWriter,r *http.Request) {
@@ -16,8 +15,8 @@ func SayHello(w http.ResponseWriter,r *http.Request) {
 	if err != nil {
 		fmt.Println("creat template failed,err = ",err)
 	}
-	user := User{Name: "Jt", Age: 20, Gender: "man"}
-	tmpl.Execute(w,user)
+	users := []User{}
+	tmpl.Execute(w,users)
 }
 
 func main() {
