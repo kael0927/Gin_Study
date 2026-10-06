@@ -5,7 +5,7 @@ import(
 	"net/http"
 )
 
-type User struct {
+type UserInfo struct {
 	Name string
 	Age int
 }
@@ -15,8 +15,15 @@ func SayHello(w http.ResponseWriter,r *http.Request) {
 	if err != nil {
 		fmt.Println("creat template failed,err = ",err)
 	}
-	users := []User{}
-	tmpl.Execute(w,users)
+	data := map[string]interface{}{
+    "Title": "用户列表",
+    "Users": []UserInfo{
+        {Name: "张三", Age: 18},
+        {Name: "李四", Age: 15},
+        {Name: "王五", Age: 22},
+    },
+}
+	tmpl.Execute(w,data)
 }
 
 func main() {

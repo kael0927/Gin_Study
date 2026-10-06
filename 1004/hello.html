@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <body>
-    <h1>用户列表</h1>
+    {{ $title := .Title }}
+    <h1>
+        {{ .title }}
+    </h1>
     <u1>
-        {{range . }}
-        <l1>
-            {{ .Name }}
-            {{if gt .Age 18}}
-                成年
-            {{else}}
-                未成年
-            {{end}}
-        </l1>
-        {{else}}
-            <l1>暂无用户</l1>
+        {{ range .Users }}
+        <li>
+            {{ .Name }} - {{ .Age }} (( 来自：{{ $title }}))
+        </li>
         {{end}}
     </u1>
 </body>
