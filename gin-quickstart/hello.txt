@@ -1,3 +1,0 @@
-<h1 style='color:red'>Hello GO</h1>
-<h2>nice</h2>
-<img id= 'i1' src='https://image.9game.cn/2018/12/6/36930076.jpg'>
