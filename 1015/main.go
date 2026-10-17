@@ -10,8 +10,8 @@ import (
 type Article struct {
 	ID      uint   `gorm:"primaryKey"`
     Title   string `gorm:"type:varchar(100);not null"`
-    Content string `gorm:"type:text"`
-   
+    Body string `gorm:"type:text"`
+    Views    string `gorm:"type:text"`
 }
 
 type User struct {
@@ -26,8 +26,18 @@ func main() {
     }
     log.Println("连接成功")
     
-	if err := db.AutoMigrate(&User{},&Article{}); err != nil {
-		log.Fatal("建表失败:", err)
-	}
-	log.Println("建表成功")
+	//if err := db.AutoMigrate(&User{},&Article{}); err != nil {
+		//log.Fatal("建表失败:", err)
+	//}
+	//log.Println("建表成功")
+    //if err := db.Migrator().DropColumn(&Article{},"Views");err != nil {
+        //log.Fatal("删列失败：",err)
+    //}
+    if err := db.Migrator().DropColumn(&Article{},"content"); err != nil {
+        log.Fatal("删列失败：",err)
+    }
+    if err := db.Migrator().RenameColumn(&Article{},"body","content"); err != nil {
+        log.Fatal("改名失败：",err)
+    }
+    
 }
