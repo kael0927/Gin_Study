@@ -36,8 +36,6 @@ func main() {
     if err := db.Migrator().DropColumn(&Article{},"content"); err != nil {
         log.Fatal("删列失败：",err)
     }
-    if err := db.Migrator().RenameColumn(&Article{},"body","content"); err != nil {
-        log.Fatal("改名失败：",err)
-    }
+   
     
 }
