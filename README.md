@@ -1,4 +1,41 @@
 # Go
+---
+## 项目问题：
+ - DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})：
+     1. **`mysql.Open(dsn)`**
+    `dsn` = 连接字符串，里面写了：数据库地址、账号、密码、库名、编码
+    `mysql.Open(dsn)`：**根据 dsn 信息，创建 MySQL 驱动的连接**。
+    类比：拿着地址 + 账号密码，去敲数据库大门。
+
+    2. **`gorm.Open(驱动连接, &gorm.Config{})`**
+    gorm.Open 是 GORM 的入口函数：
+    接收数据库驱动，**初始化 GORM 实例（遥控器）**`&gorm.Config{}`：GORM 配置，这里传空结构体，就是使用 GORM 默认配置。
+    3. **返回两个值 `DB, err`**
+    - `DB`：成功的话，就是`*gorm.DB`数据库遥控器，后续用来 Create/Find/AutoMigrate
+    - `err`：错误信息
+    - 数据库账号密码错、mysql 没启动、库不存在 → err 不为 nil
+    - 连接成功 → err=nil
+ - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Go 后端开发结构化技术笔记
 
