@@ -8,9 +8,9 @@ import (
 )
 
 type Todo struct {
-	ID int `json:id`
-	Title string `json:title`
-	Status bool `json:status`
+	ID int `json:"id"`
+	Title string `json:"title"`
+	Status bool `json:"status"`
 }
 
 var db *gorm.DB
@@ -32,10 +32,27 @@ func main() {
 	r.GET("/todo", func(c *gin.Context){
 		var todolist []Todo
 		if err = db.Find(&todolist).Error; err != nil {
-			c.JSON(http.StatusOK,gin.H{"err":err.Error()})
+			c.JSON(http.StatusInternalServerError,gin.H{"err":err.Error()})
+			return
 		}else{
 			c.JSON(http.StatusOK,todolist)
 		}
+	})
+	r.POST("/todo", func(c *gin.Context){
+		var newTodo Todo
+		if err = c.ShouldBind(&newTodo); err != nil {
+			c.JSON(400, gin.H{
+				"err": err.Error(),
+			})
+			return
+		if err = db.Create(&newTodo).Error; err != nil{	
+			c.JSON(500, gin.H{"err": err.Error()})	
+			return
+		}else{				
+			c.JSON(200, newTodo),
+		}
+		
+
 	})
 	r.Run(":9000")
 

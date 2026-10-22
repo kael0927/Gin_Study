@@ -15,8 +15,27 @@
     - `err`：错误信息
     - 数据库账号密码错、mysql 没启动、库不存在 → err 不为 nil
     - 连接成功 → err=nil
- - 
+ - c.ShouldBind(obj interface{})
+    签名：`func (c *Context) ShouldBind(obj interface{}) error` 
+    > 核心：**自动检测请求的 Content-Type，选用对应绑定器，把请求数据填入你传的结构体指针；校验失败返回 error，**不会自动写响应、不会中断请求 **。
+ - db.Create(&newTodo)
 
+    签名：`db.Create(interface{}) *gorm.DB`
+
+    ```
+    result := db.Create(&newTodo)
+    err := result.Error
+    ```
+
+    核心：**往数据库插入一条新记录**
+
+    ## 执行流程
+
+    1. 拿到你传的结构体指针 `&newTodo`
+    2. 根据结构体 `Todo`，找到对应数据表（默认 `todos`）
+    3. 生成 `INSERT INTO todos (title,status) VALUES (?,?)` SQL
+    4. 执行插入
+    5. ✅ **自动回填自增主键 ID 到 newTodo.ID**（这个很关键！）
 
 
 
