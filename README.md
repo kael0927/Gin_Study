@@ -19,25 +19,43 @@
     签名：`func (c *Context) ShouldBind(obj interface{}) error` 
     > 核心：**自动检测请求的 Content-Type，选用对应绑定器，把请求数据填入你传的结构体指针；校验失败返回 error，**不会自动写响应、不会中断请求 **。
  - db.Create(&newTodo)
-
     签名：`db.Create(interface{}) *gorm.DB`
-
     ```
     result := db.Create(&newTodo)
     err := result.Error
     ```
-
     核心：**往数据库插入一条新记录**
-
     ## 执行流程
-
     1. 拿到你传的结构体指针 `&newTodo`
     2. 根据结构体 `Todo`，找到对应数据表（默认 `todos`）
     3. 生成 `INSERT INTO todos (title,status) VALUES (?,?)` SQL
     4. 执行插入
     5. ✅ **自动回填自增主键 ID 到 newTodo.ID**（这个很关键！）
-
-
+ - # `c.Param("id")`（Gin）
+    作用：**获取路径参数（path param）**，从 URL 路径里拿 `:id` 占位符对应的值，返回字符串类型。
+    ### 1. 最简示例
+    ```
+    r.GET("/user/:id", func(c *gin.Context) {
+        // 取出路径里的id
+        idStr := c.Param("id")
+        // 拿到的是string，用GORM查数据库一般要转int
+        // var id int
+        // id, _ = strconv.Atoi(idStr)
+        c.String(200, "用户id：%s", idStr)
+    })
+    ```
+    - 访问：`GET /user/10` → `c.Param("id")` 得到 `"10"`
+    - 路由里必须写 `:id`，冒号是标记，代表动态占位符Gin Web Fr...
+    ### 2. 和 `c.Query("id")` 区分（高频踩坑）
+    - `c.Param("id")`：**路径参数**，在 `/` 之间，`/user/:id` → `/user/10`
+    - `c.Query("id")`：**查询参数**，在 `?` 后面，`/user?id=10`
+    ### 3. 重要特性
+    1. 返回值永远是 `string`，**不会自动转数字**，传给 GORM 查库必须手动转类型
+    2. 路由不匹配时，Gin 根本不会进这个 handler，不用判空
+    3. 底层等价：`c.Params.ByName("id")` 的简写腾讯云
+    4. REST 风格标准用法：查单条、删除、修改资源都用它（`GET /book/:id`、`DELETE /book/:id`） 
+ - 1. `db.First(&todo,id)` → todo = 数据库里的旧记录
+   2. `c.ShouldBindJSON(&todo)` → **前端传了哪些字段，就只覆盖哪些字段；前端没传的字段，保留数据库原来的值**
 
 
 
