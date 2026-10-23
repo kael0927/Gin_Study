@@ -3,25 +3,19 @@ package main
 import (
 	"net/http"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"strconv"
 	"bubble/models"
+	"bubble/dao"
 )
-
-
-
-var DB *gorm.DB
 
 func main() {
 	var err error
-	dsn := "root:123456@tcp(127.0.0.1:3306)/bubble?charset=utf8mb4&parseTime=True&loc=Local"
-	DB,err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("数据库连接失败:" + err.Error())
+	// 连接数据库
+	if err = dao.InitMysql(); err != nil {
+		panic("连接数据库失败：" + err.Error())
 	}
 	// 自动建表
-	err = DB.AutoMigrate(&models.Todo{})
+	err = dao.DB.AutoMigrate(&models.Todo{})
 	if err != nil {
 		panic("建表失败：" + err.Error())
 	}
@@ -29,7 +23,7 @@ func main() {
 	r := gin.Default()
 	r.GET("/todo", func(c *gin.Context){
 		var todolist []models.Todo
-		if err = DB.Find(&todolist).Error; err != nil {
+		if err = dao.DB.Find(&todolist).Error; err != nil {
 			c.JSON(http.StatusInternalServerError,gin.H{"err":err.Error()})
 			return
 		}else{
@@ -42,7 +36,7 @@ func main() {
 			c.JSON(400, gin.H{"err": err.Error(),})
 			return
 		}
-		if err = DB.Create(&newTodo).Error; err != nil{	
+		if err = dao.DB.Create(&newTodo).Error; err != nil{	
 			c.JSON(500, gin.H{"err": err.Error()})	
 			return
 		}				
@@ -56,7 +50,7 @@ func main() {
 			return
 		}
 		var todo models.Todo
-		if err := DB.First(&todo, id).Error; err != nil { // 查找表中对应数据并装进todo
+		if err := dao.DB.First(&todo, id).Error; err != nil { // 查找表中对应数据并装进todo
 			c.JSON(400, gin.H{"err":"未找到该待办"})
 			return
 		}
@@ -66,7 +60,7 @@ func main() {
 			return
 		}
 		// 保存修改
-		if err := DB.Save(&todo).Error; err != nil {
+		if err := dao.DB.Save(&todo).Error; err != nil {
 			c.JSON(400, gin.H{"err": err.Error()})
 			return
 		}
@@ -77,7 +71,7 @@ func main() {
 		idStr := c.Param("id") 
 		id,_ := strconv.Atoi(idStr)
 		// 直接执行行删除 Where中指定 ID 
-		if err := DB.Where("id = ?",id).Delete(&models.Todo{}).Error; err != nil {
+		if err := dao.DB.Where("id = ?",id).Delete(&models.Todo{}).Error; err != nil {
 			c.JSON(500, gin.H{"err":err.Error()})
 			return
 		}
