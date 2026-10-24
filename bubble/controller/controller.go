@@ -1,78 +1,70 @@
 package controller
 
 import (
-	"bubble/models"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"github.com/gin-gonic/gin"
+	"bubble/dao"
+	"bubble/models"
+	"strconv"
 )
 
 /*
  url     --> controller  --> logic   -->    model
 请求来了  -->  控制器      --> 业务逻辑  --> 模型层的增删改查
 */
-
-func IndexHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", nil)
+func GetTodolist(c *gin.Context)  {
+	var todolist []models.Todo
+	if err := dao.DB.Find(&todolist).Error; err != nil {
+		c.JSON(http.StatusInternalServerError,gin.H{"err":err.Error()})	
+		return		
+	}
+	c.JSON(http.StatusOK,todolist)
 }
-
 
 func CreateTodo(c *gin.Context) {
-	// 前端页面填写待办事项 点击提交 会发请求到这里
-	// 1. 从请求中把数据拿出来
-	var todo models.Todo
-	c.BindJSON(&todo)
-	// 2. 存入数据库
-	err:=models.CreateATodo(&todo)
-	if err != nil{
-		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
-	}else{
-		c.JSON(http.StatusOK, todo)
-		//c.JSON(http.StatusOK, gin.H{
-		//	"code": 2000,
-		//	"msg": "success",
-		//	"data": todo,
-		//})
-	}
-}
-
-func GetTodoList(c *gin.Context) {
-	// 查询todo这个表里的所有数据
-	todoList, err := models.GetAllTodo()
-	if err!= nil {
-		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
-	}else {
-		c.JSON(http.StatusOK, todoList)
-	}
-}
-
-func UpdateATodo(c *gin.Context) {
-	id, ok := c.Params.Get("id")
-	if !ok {
-		c.JSON(http.StatusOK, gin.H{"error": "无效的id"})
+	var newTodo models.Todo
+	if err := c.ShouldBindJSON(&newTodo); err != nil {
+		c.JSON(400, gin.H{"err": err.Error(),})
 		return
 	}
-	todo, err := models.GetATodo(id)
+	if err := dao.DB.Create(&newTodo).Error; err != nil{	
+		c.JSON(500, gin.H{"err": err.Error()})	
+		return
+	}				
+	c.JSON(200, newTodo)
+}
+
+func UpdateTodo(c *gin.Context) {
+	idStr := c.Param("id")// 获取路径参数
+	id,err := strconv.Atoi(idStr); 
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"err":"ID格式错误"})
 		return
 	}
-	c.BindJSON(&todo)
-	if err = models.UpdateATodo(todo); err!= nil{
-		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
-	}else{
-		c.JSON(http.StatusOK, todo)
+	var todo models.Todo
+	if err := dao.DB.First(&todo, id).Error; err != nil { // 查找表中对应数据并装进todo
+		c.JSON(400, gin.H{"err":"未找到该待办"})
+		return
 	}
+	// 新数据覆盖旧数据
+	if err := c.ShouldBindJSON(&todo); err != nil {
+		c.JSON(400, gin.H{"err": err.Error()})
+		return
+	}
+	// 保存修改
+	if err := dao.DB.Save(&todo).Error; err != nil {
+		c.JSON(400, gin.H{"err": err.Error()})
+		return
+	}
+	c.JSON(200, todo)
 }
 
-func DeleteATodo(c *gin.Context) {
-	id, ok := c.Params.Get("id")
-	if !ok {
-		c.JSON(http.StatusOK, gin.H{"error": "无效的id"})
+func DeleteTodo(c *gin.Context) {
+	idStr := c.Param("id")
+	id,_ := strconv.Atoi(idStr)
+	if err := dao.DB.Where("id = ?",id).Delete(&models.Todo{}).Error; err != nil {
+		c.JSON(500, gin.H{"err":err.Error()})
 		return
 	}
-	if err := models.DeleteATodo(id);err!=nil{
-		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
-	}else{
-		c.JSON(http.StatusOK, gin.H{id:"deleted"})
-	}
+	c.JSON(200, gin.H{"msg":"删除成功"})
 }
