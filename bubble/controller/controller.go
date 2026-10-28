@@ -2,11 +2,13 @@ package controller
 
 import (
 	"bubble/dao"
+	"bubble/logic"
 	"bubble/models"
 	"net/http"
 	"strconv"
-
+	"errors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 /*
@@ -63,10 +65,16 @@ func UpdateTodo(c *gin.Context) {
 
 func DeleteTodo(c *gin.Context) {
 	idStr := c.Param("id")
-	id, _ := strconv.Atoi(idStr)
-	if err := dao.DB.Where("id = ?", id).Delete(&models.Todo{}).Error; err != nil {
-		c.JSON(500, gin.H{"err": err.Error()})
-		return
+	id, err := strconv.Atoi(idStr)
+	if err != nil {c.JSON(404, gin.H{"err":"id不为int"})}
+	if err := logic.DeleteTodo(id); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(404, gin.H{"err":"代办不存在"})
+			return
+		}else{
+			c.JSON(500, gin.H{"err":"数据库错误"})
+			return
+		}
 	}
-	c.JSON(200, gin.H{"msg": "删除成功"})
+	c.JSON(200, gin.H{"msg": "删除成功"}) 
 }
