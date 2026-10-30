@@ -1,5 +1,27 @@
 # Go
 ---
+## Redis
+1. TTL 命令如果返回 -2，代表这个 key 根本不存在；如果返回 -1，代表这个 key 存在，但你忘了给它设过期时间
+2.SET
+```
+rdb.Set(ctx, key, value, expiration)
+```
+- 作用：设置 key-value
+- expiration=0：永久不过期；>0：自动过期；`redis.KeepTTL`：保留原有过期时间
+- 返回 `*StatusCmd`，成功返回 `OK`
+3. GET
+```
+rdb.Get(ctx, key)
+```
+- 作用：根据 key 取值
+- 返回 `*StringCmd`
+- 特殊：key 不存在时，err = `redis.Nil`（不是网络错误）不当作系统异常处理，当作正常业务结果
+4.Hset
+    建立一个小表格，每个字段独立存在，可单独读写
+    Hset取出来的值是字符串
+    当字段过多 不适合Hash HGetAll造成redis阻塞
+5.Context.background():创建一个永不取消、无超时、不带值的根上下文，作为派生其他上下文的起点。
+---
 ## 项目问题：
  - DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})：
      1. **`mysql.Open(dsn)`**
