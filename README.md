@@ -4,7 +4,7 @@
 1. TTL 命令如果返回 -2，代表这个 key 根本不存在；如果返回 -1，代表这个 key 存在，但你忘了给它设过期时间
 2.SET
 ```
-rdb.Set(ctx, key, value, expiration)
+rdb.Set(ctx, key, value, expiration) 
 ```
 - 作用：设置 key-value
 - expiration=0：永久不过期；>0：自动过期；`redis.KeepTTL`：保留原有过期时间
@@ -20,6 +20,8 @@ rdb.Get(ctx, key)
     建立一个小表格，每个字段独立存在，可单独读写
     Hset取出来的值是字符串
     当字段过多 不适合Hash HGetAll造成redis阻塞
+    `Set`：Redis **String 结构**（key → 单个 value）
+    `HSet`：Redis **Hash 哈希结构**（一个大 key → 里面有多组 field-value）
 5.Context.background():创建一个永不取消、无超时、不带值的根上下文，作为派生其他上下文的起点。
 ---
 ## 项目问题：
