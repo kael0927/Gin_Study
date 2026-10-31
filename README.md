@@ -1,28 +1,52 @@
 # Go
 ---
 ## Redis
-1. TTL 命令如果返回 -2，代表这个 key 根本不存在；如果返回 -1，代表这个 key 存在，但你忘了给它设过期时间
-2.SET
-```
-rdb.Set(ctx, key, value, expiration) 
-```
-- 作用：设置 key-value
-- expiration=0：永久不过期；>0：自动过期；`redis.KeepTTL`：保留原有过期时间
-- 返回 `*StatusCmd`，成功返回 `OK`
-3. GET
-```
-rdb.Get(ctx, key)
-```
-- 作用：根据 key 取值
-- 返回 `*StringCmd`
-- 特殊：key 不存在时，err = `redis.Nil`（不是网络错误）不当作系统异常处理，当作正常业务结果
-4.Hset
+1. String
+    1. TTL 命令如果返回 -2，代表这个 key 根本不存在；如果返回 -1，代表这个 key 存在，但你忘了给它设过期时间
+    2.SET
+    ```
+    rdb.Set(ctx, key, value, expiration) 
+    ```
+    - 作用：设置 key-value
+    - expiration=0：永久不过期；>0：自动过期；`redis.KeepTTL`：保留原有过期时间
+    - 返回 `*StatusCmd`，成功返回 `OK`
+    3. GET
+    ```
+    rdb.Get(ctx, key)
+    ```
+    - 作用：根据 key 取值
+    - 返回 `*StringCmd`
+    - 特殊：key 不存在时，err = `redis.Nil`（不是网络错误）不当作系统异常处理，当作正常业务结果
+4. Hset
     建立一个小表格，每个字段独立存在，可单独读写
     Hset取出来的值是字符串
     当字段过多 不适合Hash HGetAll造成redis阻塞
     `Set`：Redis **String 结构**（key → 单个 value）
     `HSet`：Redis **Hash 哈希结构**（一个大 key → 里面有多组 field-value）
-5.Context.background():创建一个永不取消、无超时、不带值的根上下文，作为派生其他上下文的起点。
+5. Context.background():创建一个永不取消、无超时、不带值的根上下文，作为派生其他上下文的起点。
+6. List
+    双向的队列 日常开发右进(RPush)左出(LPop) 做到FIFO(先进先出) 
+    当List中没有数据 LPop返回空字符 err为redis.Nil
+    RPush 是可以一次性推入多个值的，像上面代码一样用逗号隔开即可。
+    rdb.LRange(ctx, "task:queue", 0, -1).Result()
+        从0取到-1(最后一位) 只是查看 不会删除List中元素
+    res,err := rdb.BRPop(ctx,key,time).Result()
+        返回的res是一个[]string数组 [key, value] res[1]才开始取值
+7. Set
+    无序且不重复
+    count 快速查询set是否有 
+    ZSet
+        ZAdd 必须使用 redis.Z 结构体来传参数，不能直接写字符串，因为 Score 是 float64 类型。
+        %v 通用占位符
+8. Redis单命令原子性：不需要提前查、不需要提前初始化，一条命令直接完成修改，服务端原子执行，规避「先查后改」的竞态漏洞
+    1. ✅ 原子优先：优先找 Redis 原生单命令，避免自己写「查询 + 修改」两步逻辑
+    2. ✅ 靠返回值判断业务，不要靠预先查询：
+        - HIncrBy 返回新分数
+        - SAdd 返回新增个数
+        - ZIncrBy 返回新分数
+    3. ✅ 理解空值默认规则：
+        - INCR/HIncrBy/ZIncrBy：不存在 = 0
+        - GET：不存在返回 redis.Nil（和上面的增量命令区分开！）
 ---
 ## 项目问题：
  - DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})：

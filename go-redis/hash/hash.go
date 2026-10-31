@@ -10,8 +10,7 @@ import (
 func main() {
 	rdb := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 	ctx := context.Background()
-	rdb.HSet(ctx, "user:name", "name", "adel", "age", 25)
-	rdb.HIncrBy(ctx, "user:name", "age", 1)
-	age, _ := rdb.HGet(ctx, "user:name", "age").Result()
-	fmt.Println(age)
+	
+	score, _ := rdb.ZIncrBy(ctx, "hot:video", 1, "video:999").Result()
+	fmt.Println(score)
 }
