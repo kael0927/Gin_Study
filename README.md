@@ -68,6 +68,12 @@
         存放位置：Redis
         生效范围：所有服务实例
         适用场景：集群分布式环境防击穿、抢资源
+9. 缓存与数据库的"双写一致性"
+    问题：更新数据库的时候，如何处理数据库和缓存：
+        先更新数据库，再删除缓存（Cache Aside）
+            原因：因为在绝大多数场景下，“删”比“写”快。而且哪怕有极小概率产生脏数据，因为是“删”缓存，下次读的时候缓存未命中，还能从 DB 里读到最新的数据重新加载（兜底了）。
+10. 不要写 rdb.Get(c, ...)。Gin 的 c 是 *gin.Context，它没直接实现标准库的 context.Context。必须写 c.Request.Context() 或者 context.Background()（推荐前者，这样客户端断开连接时，Redis 请求也会随之取消）。
+11. 接口防刷：Redis使用SetNX
 ---
 ## 项目问题：
  - DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})：
