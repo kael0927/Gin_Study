@@ -9,33 +9,51 @@ import (
 
 var ctx = context.Background()
 var rdb *redis.Client
-
+const (
+	streamKey    = "stream_group_demo"
+	groupName    = "order_group"
+	consumerName = "consumer_1"
+)
 // 连接redis
 func init() {
 	rdb = redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 }
 
 // 生产者
-func Producer(queueKey string) {
+func Publisher() {
 	for i := 1; i < 5; i++{
-		msg := fmt.Sprintf("msg-%d", i)
-		rdb.LPush(ctx, queueKey, msg)
-		fmt.Printf("发送：%v\n", msg)
-		time.Sleep(200 * time.Millisecond)
+		id,err := rdb.XAdd(ctx, &redis.XAddArgs{
+			Stream: streamKey,
+			Values: map[string]interface{}{"data": fmt.Sprintf("msg-%d", i)},
+		}).Result()
+		if err == nil {
+			fmt.Printf("发送成功, 消息ID:%s\n", id)
+		}
+		time.Sleep(2 * time.Second)
 	}
 }
 
 // 消费者
-func Consumer(queueKey string) {
+func Subscriber() {
+	lastID := "0"
 	for{
-		//0表示永久阻塞
-		res, _ := rdb.BRPop(ctx, 0, queueKey).Result()
-		fmt.Printf("收到消息：%v\n", res[1])
+		res, err := rdb.XRead(ctx, &redis.XReadArgs{
+			Streams: []string{streamKey, lastID},
+			Count: 1,
+			Block: 0,
+		}).Result()
+		if err != nil {
+			continue
+		}
+		msg := res[0].Messages[0]
+		fmt.Printf("收到消息 ID:%v, 内容: %v", msg.ID, msg.Values["data"])
+		lastID = msg.ID
 	}
 }
 
 func main() {
-	go Consumer("demo")
-	Producer("demo")
+	go Subscriber()
+	time.Sleep(1 * time.Second)
+	Publisher()
 	select{}
 }
