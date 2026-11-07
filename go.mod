@@ -6,6 +6,7 @@ require (
 	github.com/gin-contrib/cors v1.7.9
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-redsync/redsync/v4 v4.18.1
+	github.com/rabbitmq/amqp091-go v1.16.0
 	github.com/redis/go-redis/v9 v9.23.0
 	golang.org/x/sync v0.24.0
 	gorm.io/driver/mysql v1.6.0
