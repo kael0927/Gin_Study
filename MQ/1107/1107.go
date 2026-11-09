@@ -8,32 +8,38 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 )
 
-const fanoutExchange = "hello_demo_test"
+const topicExchange = "demo_test"
 
 // 生产者 往交换机法发消息
 func producer(ch *amqp091.Channel) {
-	for i := 0; i <= 5; i++ {
-		body := fmt.Sprintf("msg-%d",i)
+	routinKeys := []string{
+		"user",
+		"user.login",
+		"user.login.sucess",
+		"order.pay",
+	}
+	for _, rk := range routinKeys {
+		msg := fmt.Sprintf("rk_%s", rk)
 		ch.Publish(
-			fanoutExchange,	//交换机类型
-			"", 	// fanout类型下路由键无效
+			topicExchange,	//交换机类型
+			rk, 	
 			false,false,
 			amqp091.Publishing{
 				DeliveryMode: amqp091.Persistent,	//消息持久
 				ContentType: "text/plain",
-				Body: []byte(body),
+				Body: []byte(msg),
 			},
 		)
-		fmt.Printf("发送消息：%s", body)
+		fmt.Printf("发送消息：%s", msg)
 		time.Sleep(500 * time.Millisecond)
 	} 
 }
 
-func fanoutConsumer(ch *amqp091.Channel, name string) {
+func fanoutConsumer(ch *amqp091.Channel, name string, bindKey string) {
 	// 声明交换机
 	err := ch.ExchangeDeclare(
-		fanoutExchange,
-		"fanout",
+		topicExchange,
+		"topic",
 		true,
 		false,false,false,nil,
 	)
@@ -54,8 +60,8 @@ func fanoutConsumer(ch *amqp091.Channel, name string) {
 	}
 	err = ch.QueueBind(
 		q.Name,
-		"",//路由键 无效
-		fanoutExchange,
+		bindKey,//路由键 无效
+		topicExchange,
 		false,
 		nil,
 	)
@@ -68,8 +74,9 @@ func fanoutConsumer(ch *amqp091.Channel, name string) {
 		"",
 		true,false,false,false,nil,
 	)
+	fmt.Printf("[%s] 已订阅，绑定键：%s\n", name, bindKey)
 	for d := range msgs {
-		fmt.Printf("[%s] 收到: %s\n", name, d.Body)
+		fmt.Printf("====> [%s] 收到消息：%s\n", name, d.Body)
 	}
 }
 
@@ -85,8 +92,8 @@ func main() {
 	defer pubCh.Close()
 
 	// 启动两个消费者，各有各的队列
-	go fanoutConsumer(ch1, "订阅者A")
-	go fanoutConsumer(ch2, "订阅者B")
+	go fanoutConsumer(ch1, "订阅者A", "user.#")
+	go fanoutConsumer(ch2, "订阅者B","user.*")
 
 	time.Sleep(200 * time.Millisecond)
 	producer(pubCh)
