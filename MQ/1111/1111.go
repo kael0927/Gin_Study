@@ -183,7 +183,7 @@ func main() {
 	returnChan := prodCh.NotifyReturn(make(chan amqp091.Return, 10))
 	go func() {
 		for r := range returnChan {
-			log.Printf("消息退回 msgId:%s, reason:%s", r.MessageId, r.ReplyText)
+			 log.Printf("消息退回 msgId:%s, reason:%s", r.MessageId, r.ReplyText)
 		}
 	}()
 
