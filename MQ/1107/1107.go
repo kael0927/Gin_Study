@@ -55,6 +55,7 @@ func fanoutConsumer(ch *amqp091.Channel, name string, bindKey string) {
 		false,
 		nil,
 	)
+	
 	if err != nil {
 		log.Fatal(err)
 	}
