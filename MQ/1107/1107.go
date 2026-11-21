@@ -20,7 +20,7 @@ func producer(ch *amqp091.Channel) {
 	}
 	for _, rk := range routinKeys {
 		msg := fmt.Sprintf("rk_%s", rk)
-		ch.Publish(
+		ch.Publish( 
 			topicExchange,	//交换机类型
 			rk, 	
 			false,false,
