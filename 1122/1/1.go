@@ -21,7 +21,7 @@ func NotifyUser(n Notifier, msg string) {
 }
 func main() {
 	var n Notifier
-	fmt.Printf("n 的类型 %T  n == nil: %v\n", n, n==nil)
+	fmt.Printf("n 的类型 %T   n == nil: %v\n", n, n==nil)
 	n = EmailNotifier{ Name:"hui"}
 	fmt.Printf("n 的类型 %T  n == nil: %v\n", n, n==nil)
 	if e, ok := n.(EmailNotifier); ok {
