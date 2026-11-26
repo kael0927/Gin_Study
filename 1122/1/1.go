@@ -14,7 +14,7 @@ func (a Alipay) Pay(amount int) {
 	fmt.Println("alipay pay :", amount)
 }
 type WechatPay struct { name string}
-func (w WechatPay) Pay(amount int) {
+func (w WechatPay) Pay(amount int) { 
 	fmt.Println("wechatpay pay:", amount)
 }
 func main() {
