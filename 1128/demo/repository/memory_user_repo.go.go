@@ -4,7 +4,7 @@ import (
 )
 type User struct {
 	ID int
-	name string
+	Name string
 }
 type MemoryUserRepo struct {
 	mu sync.Mutex
